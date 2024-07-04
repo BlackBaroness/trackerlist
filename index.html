@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracker List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tracker List</h1>
+    <pre id="tracker-list">Loading...</pre>
+
+    <script>
+        async function fetchAndProcessData() {
+            const urls = [
+                'https://github.com/XIU2/TrackersListCollection/raw/master/all.txt',
+                'https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt'
+            ];
+            
+            try {
+                const data = await Promise.all(urls.map(url => fetch(url).then(response => response.text())));
+                let combinedData = data.join('\n');
+
+                let lines = combinedData.split('\n');
+                let grouped = {
+                    udp: [],
+                    http: [],
+                    https: [],
+                    wss: []
+                };
+
+                lines.forEach(line => {
+                    if (line.trim()) {
+                        if (line.startsWith('udp://')) grouped.udp.push(line);
+                        else if (line.startsWith('http://')) grouped.http.push(line);
+                        else if (line.startsWith('https://')) grouped.https.push(line);
+                        else if (line.startsWith('wss://')) grouped.wss.push(line);
+                    }
+                });
+
+                grouped.udp.sort();
+                grouped.http.sort();
+                grouped.https.sort();
+                grouped.wss.sort();
+
+                let result = [
+                    ...grouped.udp,
+                    '',
+                    ...grouped.http,
+                    '',
+                    ...grouped.https,
+                    '',
+                    ...grouped.wss
+                ].join('\n');
+
+                document.getElementById('tracker-list').textContent = result;
+            } catch (error) {
+                document.getElementById('tracker-list').textContent = 'Error loading data: ' + error.message;
+            }
+        }
+
+        fetchAndProcessData();
+    </script>
+</body>
+</html>
